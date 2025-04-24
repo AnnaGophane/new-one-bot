@@ -1,11 +1,10 @@
 import { Telegraf } from 'telegraf';
-import { BotContext } from './types';
-import { config } from './config';
-import { userCommandsHandler } from './handlers/userCommandsHandler';
-import { ownerCommandsHandler } from './handlers/ownerCommandsHandler';
-import { logger } from './utils/logger';
+import { BotContext } from './types.js';
+import { config } from './config.js';
+import { userCommandsHandler } from './handlers/userCommandsHandler.js';
+import { ownerCommandsHandler } from './handlers/ownerCommandsHandler.js';
+import { logger } from './utils/logger.js';
 
-// Setup bot commands
 export const setupCommands = (bot: Telegraf<BotContext>) => {
   // Public commands
   bot.command('start', userCommandsHandler.start);
