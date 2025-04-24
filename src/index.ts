@@ -1,11 +1,11 @@
 import { Telegraf, session } from 'telegraf';
 import { message } from 'telegraf/filters';
-import { config } from './config';
-import { setupCommands } from './commands';
-import { handleMessage } from './handlers/messageHandler';
-import { BotContext } from './types';
-import { initializeMiddleware } from './middleware';
-import { logger } from './utils/logger';
+import { config } from './config.js';
+import { setupCommands } from './commands.js';
+import { handleMessage } from './handlers/messageHandler.js';
+import { BotContext } from './types.js';
+import { initializeMiddleware } from './middleware.js';
+import { logger } from './utils/logger.js';
 
 // Initialize the bot
 const bot = new Telegraf<BotContext>(config.TELEGRAM_BOT_TOKEN);
@@ -24,17 +24,21 @@ bot.on(message('text'), handleMessage);
 
 // Handle voice messages
 bot.on(message('voice'), async (ctx) => {
-  await ctx.reply('Voice message processing is coming soon!');
+  await handleMessage(ctx);
 });
 
 // Handle image messages
 bot.on(message('photo'), async (ctx) => {
-  await ctx.reply('Image processing is coming soon!');
+  await handleMessage(ctx);
 });
 
 // Add webhook support for production
 if (process.env.NODE_ENV === 'production') {
-  const domain = process.env.DOMAIN || '';
+  const domain = process.env.DOMAIN;
+  if (!domain) {
+    throw new Error('DOMAIN environment variable is required in production');
+  }
+  
   const secretPath = `/webhook/${bot.secretPathComponent()}`;
   
   // Set webhook
@@ -47,7 +51,13 @@ if (process.env.NODE_ENV === 'production') {
     });
     
   // Start webhook
-  bot.startWebhook(secretPath, null, 3000);
+  bot.launch({
+    webhook: {
+      domain: domain,
+      path: secretPath,
+      port: 3000
+    }
+  });
 } else {
   // Start polling in development
   bot.launch()
