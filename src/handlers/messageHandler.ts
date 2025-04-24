@@ -1,8 +1,8 @@
-import { MessageContext } from '../types';
-import { processWithAI } from '../services/aiService';
-import { transcribeAudio, convertOggToWav } from '../services/voiceService';
-import { analyzeImage } from '../services/imageService';
-import { logger } from '../utils/logger';
+import { MessageContext } from '../types.js';
+import { processWithAI } from '../services/aiService.js';
+import { transcribeAudio, convertOggToWav } from '../services/voiceService.js';
+import { analyzeImage } from '../services/imageService.js';
+import { logger } from '../utils/logger.js';
 import axios from 'axios';
 import { createWriteStream, unlink } from 'fs';
 import { promisify } from 'util';
