@@ -7,6 +7,7 @@ import axios from 'axios';
 import { createWriteStream, unlink } from 'fs';
 import { promisify } from 'util';
 import path from 'path';
+import { Message } from 'telegraf/types';
 
 const unlinkAsync = promisify(unlink);
 
@@ -15,7 +16,7 @@ export const handleMessage = async (ctx: MessageContext) => {
     await ctx.sendChatAction('typing');
 
     // Handle text messages
-    if (ctx.message.text) {
+    if (ctx.message && 'text' in ctx.message) {
       ctx.session.messageHistory.push({
         role: 'user',
         content: ctx.message.text
@@ -31,7 +32,7 @@ export const handleMessage = async (ctx: MessageContext) => {
       await ctx.reply(response, { parse_mode: 'Markdown' });
     }
     // Handle voice messages
-    else if (ctx.message.voice) {
+    else if (ctx.message && 'voice' in ctx.message) {
       const file = await ctx.telegram.getFile(ctx.message.voice.file_id);
       const filePath = file.file_path;
       
@@ -77,7 +78,7 @@ export const handleMessage = async (ctx: MessageContext) => {
       await ctx.reply(`🎤 Transcription: ${transcription}\n\n${aiResponse}`, { parse_mode: 'Markdown' });
     }
     // Handle image messages
-    else if (ctx.message.photo) {
+    else if (ctx.message && 'photo' in ctx.message) {
       const photo = ctx.message.photo[ctx.message.photo.length - 1]; // Get highest quality photo
       const file = await ctx.telegram.getFile(photo.file_id);
       
@@ -106,8 +107,8 @@ export const handleMessage = async (ctx: MessageContext) => {
     }
 
     // Trim history if it exceeds the maximum length
-    if (ctx.session.messageHistory.length > ctx.session.maxHistory) {
-      ctx.session.messageHistory = ctx.session.messageHistory.slice(-ctx.session.maxHistory);
+    if (ctx.session.messageHistory.length > (ctx.session.maxHistory || 10)) {
+      ctx.session.messageHistory = ctx.session.messageHistory.slice(-(ctx.session.maxHistory || 10));
     }
   } catch (error) {
     logger.error('Error handling message:', error);
