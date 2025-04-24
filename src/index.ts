@@ -20,16 +20,16 @@ initializeMiddleware(bot);
 setupCommands(bot);
 
 // Handle text messages
-bot.on(message('text'), (ctx) => handleMessage(ctx as BotContext));
+bot.on(message('text'), (ctx: BotContext) => handleMessage(ctx));
 
 // Handle voice messages
-bot.on(message('voice'), async (ctx) => {
-  await handleMessage(ctx as BotContext);
+bot.on(message('voice'), async (ctx: BotContext) => {
+  await handleMessage(ctx);
 });
 
 // Handle image messages
-bot.on(message('photo'), async (ctx) => {
-  await handleMessage(ctx as BotContext);
+bot.on(message('photo'), async (ctx: BotContext) => {
+  await handleMessage(ctx);
 });
 
 // Add webhook support for production
