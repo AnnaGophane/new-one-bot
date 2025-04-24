@@ -38,7 +38,7 @@ export const ownerCommandsHandler = {
       return ctx.reply('This command is only available to the bot owner.');
     }
     
-    if (ctx.message && 'text' in ctx.message) {
+    if (ctx.message && ctx.message.text) {
       const args = ctx.message.text.split(' ').slice(1).join(' ');
     
       if (!args) {
@@ -83,7 +83,7 @@ export const ownerCommandsHandler = {
       return ctx.reply('This command is only available to the bot owner.');
     }
     
-    if (ctx.message && 'text' in ctx.message) {
+    if (ctx.message && ctx.message.text) {
       const args = ctx.message.text.split(' ').slice(1);
     
       if (args.length !== 1) {
