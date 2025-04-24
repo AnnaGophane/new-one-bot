@@ -1,7 +1,7 @@
 import { createReadStream } from 'fs';
 import { SpeechClient } from '@google-cloud/speech';
 import ffmpeg from 'fluent-ffmpeg';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 const speechClient = new SpeechClient();
 
@@ -18,14 +18,18 @@ export const convertOggToWav = async (oggPath: string, wavPath: string): Promise
 export const transcribeAudio = async (audioPath: string): Promise<string> => {
   try {
     const file = createReadStream(audioPath);
-    const audioBytes = file.read();
+    const audioBytes = await new Promise<Buffer>((resolve) => {
+      const chunks: Buffer[] = [];
+      file.on('data', (chunk) => chunks.push(chunk));
+      file.on('end', () => resolve(Buffer.concat(chunks)));
+    });
 
     const audio = {
       content: audioBytes.toString('base64'),
     };
 
     const config = {
-      encoding: 'LINEAR16',
+      encoding: 'LINEAR16' as const,
       sampleRateHertz: 16000,
       languageCode: 'en-US',
     };
