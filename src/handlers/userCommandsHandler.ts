@@ -1,9 +1,8 @@
-import { BotContext } from '../types';
-import { config } from '../config';
-import { logger } from '../utils/logger';
+import { BotContext } from '../types.js';
+import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
 export const userCommandsHandler = {
-  // Start command
   start: async (ctx: BotContext) => {
     const message = `
 *Welcome to Advanced AI Assistant!* 🤖
@@ -22,7 +21,6 @@ Type something to get started!
     logger.info(`User ${ctx.from?.id} started the bot`);
   },
   
-  // Help command
   help: async (ctx: BotContext) => {
     const message = `
 *Available Commands:*
@@ -40,20 +38,18 @@ Simply send me a message, and I'll respond using advanced AI technology.
 • Contextual responses that remember your conversation
 • Advanced AI capabilities
 • Free access to premium features
-• Support for text, images, and voice (coming soon)
+• Support for text, images, and voice
     `;
     
     await ctx.reply(message, { parse_mode: 'Markdown' });
   },
   
-  // Clear history command
   clearHistory: async (ctx: BotContext) => {
     ctx.session.messageHistory = [];
     await ctx.reply('✅ Your conversation history has been cleared.');
     logger.info(`User ${ctx.from?.id} cleared their history`);
   },
   
-  // Show current model command
   showModel: async (ctx: BotContext) => {
     const modelInfo = ctx.session.model === config.PREMIUM_MODEL 
       ? `*Current model:* ${ctx.session.model} (Premium)`
@@ -62,7 +58,6 @@ Simply send me a message, and I'll respond using advanced AI technology.
     await ctx.reply(modelInfo, { parse_mode: 'Markdown' });
   },
   
-  // Show settings command
   showSettings: async (ctx: BotContext) => {
     const settings = `
 *Your Settings:*
