@@ -1,7 +1,7 @@
 import { ImageAnnotatorClient } from '@google-cloud/vision';
 import { OpenAI } from 'openai';
-import { config } from '../config';
-import { logger } from '../utils/logger';
+import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
 const visionClient = new ImageAnnotatorClient();
 const openai = new OpenAI({ apiKey: config.OPENAI_API_KEY });
