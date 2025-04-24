@@ -1,20 +1,17 @@
 import OpenAI from 'openai';
-import { ChatMessage } from '../types';
-import { config } from '../config';
-import { logger } from '../utils/logger';
+import { ChatMessage } from '../types.js';
+import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
-// Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: config.OPENAI_API_KEY
 });
 
-// Process message with AI
 export const processWithAI = async (
   messageHistory: ChatMessage[],
   model: string
 ): Promise<string> => {
   try {
-    // Prepare messages for OpenAI
     const messages = [
       {
         role: 'system',
@@ -23,7 +20,6 @@ export const processWithAI = async (
       ...messageHistory
     ];
     
-    // Call OpenAI API
     const completion = await openai.chat.completions.create({
       model: model,
       messages: messages.map(msg => ({
@@ -34,7 +30,6 @@ export const processWithAI = async (
       max_tokens: 2000
     });
     
-    // Extract and return response
     const response = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
     
     return response;
