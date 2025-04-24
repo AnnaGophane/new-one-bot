@@ -1,6 +1,6 @@
-import { BotContext } from '../types';
-import { config } from '../config';
-import { logger } from '../utils/logger';
+import { BotContext } from '../types.js';
+import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
 export const ownerCommandsHandler = {
   // Show bot statistics
