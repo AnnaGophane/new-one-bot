@@ -6,6 +6,7 @@ export interface SessionData {
   lastInteraction: number;
   totalRequests: number;
   model: string;
+  maxHistory: number;
 }
 
 export interface ChatMessage {
@@ -16,13 +17,7 @@ export interface ChatMessage {
 export interface BotContext extends Context {
   session: SessionData;
   isOwner: boolean;
+  message?: Update.New & Update.NonChannel & Message.TextMessage;
 }
 
-export type MessageContext = NarrowedContext<BotContext, Update.MessageUpdate>;
-
-export interface UserStats {
-  userId: string;
-  username?: string;
-  messageCount: number;
-  lastActive: Date;
-}
+export type MessageContext = NarrowedContext<BotContext, Update.MessageUpdate<Message>>;
