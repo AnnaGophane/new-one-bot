@@ -1,4 +1,4 @@
-import { Context, NarrowedContext } from 'telegraf';
+import { Context } from 'telegraf';
 import { Message, Update } from 'telegraf/types';
 
 export interface SessionData {
@@ -17,7 +17,10 @@ export interface ChatMessage {
 export interface BotContext extends Context {
   session: SessionData;
   isOwner: boolean;
-  message?: Update.New & Update.NonChannel & Message.TextMessage;
+  message: Update.New & Update.NonChannel & Message;
 }
 
-export type MessageContext = NarrowedContext<BotContext, Update.MessageUpdate<Message>>;
+export type MessageContext = Context<{
+  message: Update.New & Update.NonChannel & Message;
+  update_id: number;
+}>;
