@@ -36,20 +36,22 @@ export const setupCommands = (bot: Telegraf<BotContext>) => {
   });
   
   // Set owner commands separately (only visible to owner)
-  bot.telegram.setMyCommands([
-    { command: 'stats', description: 'Show bot statistics' },
-    { command: 'broadcast', description: 'Send message to all users' },
-    { command: 'logs', description: 'Get recent logs' },
-    { command: 'setmodel', description: 'Set default AI model' },
-    { command: 'getstats', description: 'Get specific user stats' }
-  ], 
-  { 
-    scope: { type: 'chat', chat_id: parseInt(config.OWNER_USER_ID, 10) } 
-  })
-  .then(() => {
-    logger.info('Owner commands set successfully');
-  })
-  .catch((error) => {
-    logger.error('Error setting owner commands:', error);
-  });
+  if (config.OWNER_USER_ID) {
+    bot.telegram.setMyCommands([
+      { command: 'stats', description: 'Show bot statistics' },
+      { command: 'broadcast', description: 'Send message to all users' },
+      { command: 'logs', description: 'Get recent logs' },
+      { command: 'setmodel', description: 'Set default AI model' },
+      { command: 'getstats', description: 'Get specific user stats' }
+    ], 
+    { 
+      scope: { type: 'chat', chat_id: parseInt(config.OWNER_USER_ID, 10) } 
+    })
+    .then(() => {
+      logger.info('Owner commands set successfully');
+    })
+    .catch((error) => {
+      logger.error('Error setting owner commands:', error);
+    });
+  }
 };
