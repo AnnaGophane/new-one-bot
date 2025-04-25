@@ -17,11 +17,12 @@ export const convertOggToWav = async (oggPath: string, wavPath: string): Promise
 
 export const transcribeAudio = async (audioPath: string): Promise<string> => {
   try {
-    const file = createReadStream(audioPath);
-    const audioBytes = await new Promise<Buffer>((resolve) => {
+    const audioBytes = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      file.on('data', (chunk) => chunks.push(chunk));
-      file.on('end', () => resolve(Buffer.concat(chunks)));
+      createReadStream(audioPath)
+        .on('data', (chunk: Buffer) => chunks.push(chunk))
+        .on('end', () => resolve(Buffer.concat(chunks)))
+        .on('error', reject);
     });
 
     const audio = {
