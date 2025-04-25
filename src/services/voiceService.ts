@@ -20,7 +20,10 @@ export const transcribeAudio = async (audioPath: string): Promise<string> => {
     const audioBytes = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
       createReadStream(audioPath)
-        .on('data', (chunk: Buffer) => chunks.push(chunk))
+        .on('data', (chunk: Buffer) => {
+          chunks.push(chunk);
+          return chunks.length;
+        })
         .on('end', () => resolve(Buffer.concat(chunks)))
         .on('error', reject);
     });
