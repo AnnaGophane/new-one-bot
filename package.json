@@ -21,8 +21,8 @@
     "telegraf": "^4.15.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
-    "assemblyai": "^0.4.1", // Add AssemblyAI
-    "clarifai": "^2.12.0" // Add Clarifai
+    "assemblyai": "^0.4.1",
+    "clarifai": "^2.12.0"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.24",
@@ -34,7 +34,7 @@
     "postcss": "^8.4.33",
     "tailwindcss": "^3.4.1",
     "vite": "^5.0.12",
-    "@types/axios": "^0.14.0" // Add axios type definitions
+    "@types/axios": "^0.14.0"
   },
   "engines": {
     "node": ">=18.0.0"
