@@ -1,55 +1,117 @@
-import { createReadStream } from 'fs';
-import { SpeechClient } from '@google-cloud/speech';
-import ffmpeg from 'fluent-ffmpeg';
+import { MessageContext } from '../types.js';
+import { processWithAI } from '../services/aiService.js';
+import { transcribeAudio, convertOggToWav } from '../services/voiceService.js';
+import { analyzeImage } from '../services/imageService.js';
 import { logger } from '../utils/logger.js';
+import axios from 'axios';
+import { createWriteStream, unlink } from 'fs';
+import { promisify } from 'util';
+import path from 'path';
+import { Message } from 'telegraf/types';
 
-const speechClient = new SpeechClient();
+const unlinkAsync = promisify(unlink);
 
-export const convertOggToWav = async (oggPath: string, wavPath: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    ffmpeg(oggPath)
-      .toFormat('wav')
-      .on('end', () => resolve())
-      .on('error', (err) => reject(err))
-      .save(wavPath);
-  });
-};
-
-export const transcribeAudio = async (audioPath: string): Promise<string> => {
+export const handleMessage = async (ctx: MessageContext) => {
   try {
-    const audioBytes = await new Promise<Buffer>((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      createReadStream(audioPath)
-        .on('data', (chunk: Buffer) => {
-          chunks.push(chunk);
-        })
-        .on('end', () => resolve(Buffer.concat(chunks)))
-        .on('error', reject);
-    });
+    await ctx.sendChatAction('typing');
 
-    const audio = {
-      content: audioBytes.toString('base64'),
-    };
+    // Handle text messages
+    if ('text' in ctx.message) {
+      ctx.session.messageHistory.push({
+        role: 'user',
+        content: ctx.message.text
+      });
 
-    const config = {
-      encoding: 'LINEAR16' as const,
-      sampleRateHertz: 16000,
-      languageCode: 'en-US',
-    };
+      const response = await processWithAI(ctx.session.messageHistory, ctx.session.model);
+      
+      ctx.session.messageHistory.push({
+        role: 'assistant',
+        content: response
+      });
 
-    const request = {
-      audio: audio,
-      config: config,
-    };
+      await ctx.reply(response, { parse_mode: 'Markdown' });
+    }
+    // Handle voice messages
+    else if ('voice' in ctx.message) {
+      const file = await ctx.telegram.getFile(ctx.message.voice.file_id);
+      const filePath = file.file_path;
+      
+      if (!filePath) {
+        throw new Error('Could not get voice file path');
+      }
 
-    const [response] = await speechClient.recognize(request);
-    const transcription = response.results
-      ?.map(result => result.alternatives?.[0]?.transcript)
-      .join('\n') || '';
+      const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${filePath}`;
+      const response = await axios.get(fileUrl, { responseType: 'stream' });
+      
+      const tempOggPath = path.join('/tmp', `${file.file_id}.ogg`);
+      const tempWavPath = path.join('/tmp', `${file.file_id}.wav`);
+      
+      await new Promise((resolve, reject) => {
+        response.data
+          .pipe(createWriteStream(tempOggPath))
+          .on('finish', resolve)
+          .on('error', reject);
+      });
 
-    return transcription;
+      await convertOggToWav(tempOggPath, tempWavPath);
+      const transcription = await transcribeAudio(tempWavPath);
+
+      // Clean up temp files
+      await Promise.all([
+        unlinkAsync(tempOggPath),
+        unlinkAsync(tempWavPath)
+      ]);
+
+      // Process transcription with AI
+      ctx.session.messageHistory.push({
+        role: 'user',
+        content: transcription
+      });
+
+      const aiResponse = await processWithAI(ctx.session.messageHistory, ctx.session.model);
+      
+      ctx.session.messageHistory.push({
+        role: 'assistant',
+        content: aiResponse
+      });
+
+      await ctx.reply(`🎤 Transcription: ${transcription}\n\n${aiResponse}`, { parse_mode: 'Markdown' });
+    }
+    // Handle image messages
+    else if ('photo' in ctx.message) {
+      const photo = ctx.message.photo[ctx.message.photo.length - 1];
+      const file = await ctx.telegram.getFile(photo.file_id);
+      
+      if (!file.file_path) {
+        throw new Error('Could not get photo file path');
+      }
+
+      const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+      const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+      
+      const imageAnalysis = await analyzeImage(Buffer.from(response.data));
+
+      ctx.session.messageHistory.push({
+        role: 'user',
+        content: `[Image Analysis] ${imageAnalysis}`
+      });
+
+      const aiResponse = await processWithAI(ctx.session.messageHistory, ctx.session.model);
+      
+      ctx.session.messageHistory.push({
+        role: 'assistant',
+        content: aiResponse
+      });
+
+      await ctx.reply(`🖼 Image Analysis:\n${imageAnalysis}\n\n${aiResponse}`, { parse_mode: 'Markdown' });
+    }
+
+    // Trim history if it exceeds the maximum length
+    if (ctx.session.messageHistory.length > ctx.session.maxHistory) {
+      ctx.session.messageHistory = ctx.session.messageHistory.slice(-ctx.session.maxHistory);
+    }
   } catch (error) {
-    logger.error('Error transcribing audio:', error);
-    throw new Error('Failed to transcribe audio');
+    logger.error('Error handling message:', error);
+    await ctx.reply('Sorry, I encountered an error processing your message. Please try again later.');
   }
 };
