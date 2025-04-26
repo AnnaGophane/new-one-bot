@@ -1,5 +1,4 @@
 import { BotContext } from '../types.js';
-import { config } from '../config.js';
 import { logger } from '../utils/logger.js';
 
 export const ownerCommandsHandler = {
