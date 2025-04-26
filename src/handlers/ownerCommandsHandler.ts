@@ -1,7 +1,6 @@
 import { BotContext } from '../types.js';
 import { config } from '../config.js';
 import { logger } from '../utils/logger.js';
-import { Message } from 'telegraf/types';
 
 export const ownerCommandsHandler = {
   showStats: async (ctx: BotContext) => {
