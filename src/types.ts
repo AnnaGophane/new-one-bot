@@ -17,11 +17,11 @@ export interface ChatMessage {
 export interface BotContext extends Context {
   session: SessionData;
   isOwner: boolean;
-  message: Update.New & Update.NonChannel & Message.TextMessage;
+  message: Update.New & Update.NonChannel & Message;
 }
 
 export interface MessageContext extends Context {
-  message: Update.New & Update.NonChannel & Message;
   session: SessionData;
+  message: Update.New & Update.NonChannel & Message;
   update: Update.MessageUpdate<Message>;
 }
